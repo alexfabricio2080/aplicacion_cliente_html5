@@ -1,0 +1,7 @@
+_ quisiera que las ganancias entradas sean mensuales que haya una comparativa en ese mes y entre meses y tambien de venta en materiales comparativa de venta de materiales de ese mes y entre los demas meses y si se pudiera entre años en todo tambien para saber cuanto se a ganado vendido ganado y cuales materiales se ha vendido mas cada año a cual hay que ponerle mas esfuerzo etc, y si cree que debiera traer otras graficas que usted cree que sea necesario que tenga pongacela y obviamente que todo se exporte,.
+
+_ que e calendario tenga por dia, por mes y por año, no solo por mes,
+
+_ que los cliente no entren en edicion de una vez, sino que uno nada mas entre en cada tarjeta a ver detalles del cliente sus trabajos etc, y solo cuando quiera editar al cliente precione un boton de editar y entoncespueda editar al cliente, en caso contrario solo seria ver la informacion del cliente asi evitaria borrar o cambiar informacion importante, 
+
+_ no me deja editar ningun trabajo de ningun cliente y tampoco me deja editar ningun filtro.

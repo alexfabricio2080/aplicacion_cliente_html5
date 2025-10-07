@@ -1,0 +1,77 @@
+{
+  "clients": [],
+  "jobs": [
+    {
+      "id": 1759463324993,
+      "clientId": null,
+      "name": "hggsgsfgsf",
+      "material": "",
+      "measures": "",
+      "details": "",
+      "followUpNotes": "",
+      "files": [],
+      "lastUpdated": "2025-10-03T03:48:44.993Z",
+      "createdAt": "2025-10-03T03:48:44.993Z"
+    }
+  ],
+  "events": [
+    {
+      "id": 1759463303887,
+      "title": "Reunión con cliente",
+      "description": "Reunión para discutir nuevos proyectos",
+      "date": "2025-10-04",
+      "time": "10:00",
+      "clientId": null,
+      "createdAt": "2025-10-03T03:48:23.886Z",
+      "lastUpdated": "2025-10-03T03:48:23.886Z"
+    },
+    {
+      "id": 1759463303888,
+      "title": "Entrega de proyecto",
+      "description": "Entrega del proyecto de rotulación",
+      "date": "2025-10-07",
+      "time": "14:00",
+      "clientId": null,
+      "createdAt": "2025-10-03T03:48:23.886Z",
+      "lastUpdated": "2025-10-03T03:48:23.886Z"
+    },
+    {
+      "id": 1759463303889,
+      "title": "Visita técnica",
+      "description": "Visita técnica para medición",
+      "date": "2025-10-09",
+      "time": "09:00",
+      "clientId": null,
+      "createdAt": "2025-10-03T03:48:23.886Z",
+      "lastUpdated": "2025-10-03T03:48:23.886Z"
+    }
+  ],
+  "filters": [
+    {
+      "id": 1,
+      "name": "Acrílico",
+      "type": "material"
+    },
+    {
+      "id": 2,
+      "name": "Madera",
+      "type": "material"
+    },
+    {
+      "id": 3,
+      "name": "Rotulación",
+      "type": "material"
+    },
+    {
+      "id": 4,
+      "name": "Sublimación",
+      "type": "material"
+    },
+    {
+      "id": 5,
+      "name": "Impresión",
+      "type": "material"
+    }
+  ],
+  "lastSaved": "2025-10-03T03:48:44.993Z"
+}

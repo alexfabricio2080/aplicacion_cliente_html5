@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Clientes y Trabajos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Agregar Chart.js y librerías para exportación -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-briefcase"></i>
+                Gestión de Clientes
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="clientSearchInput" placeholder="Buscar clientes...">
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </h3>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Empresa</label>
+                    <select class="filter-select" id="companyFilter">
+                        <option value="">Todas las empresas</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Estado</label>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="seguimiento">Seguimiento</option>
+                        <option value="cerrado">Cerrado</option>
+                        <option value="pendiente">Pendiente</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Material</label>
+                    <select class="filter-select" id="materialFilter">
+                        <option value="">Todos los materiales</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Orden</label>
+                    <select class="filter-select" id="alphabeticalFilter">
+                        <option value="">Más recientes</option>
+                        <option value="asc">A-Z</option>
+                        <option value="desc">Z-A</option>
+                    </select>
+                </div>
+                
+                <div class="filter-actions">
+                    <button class="btn btn-light btn-sm" id="clearFiltersBtn">
+                        <i class="fas fa-times"></i> Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <i class="fas fa-cog"></i>
+                    Acciones
+                </h3>
+                <div class="sidebar-actions">
+                    <button class="btn btn-danger" id="newDatabaseBtn">
+                        <i class="fas fa-database"></i> Nueva BD
+                    </button>
+                    <button class="btn btn-light" id="exportDatabaseBtn">
+                        <i class="fas fa-download"></i> Exportar BD
+                    </button>
+                    <button class="btn btn-light" id="exportReportsBtn">
+                        <i class="fas fa-file-export"></i> Exportar Reportes
+                    </button>
+                    <button class="btn btn-light" id="importDatabaseBtn">
+                        <i class="fas fa-upload"></i> Importar BD
+                    </button>
+                    <input type="file" id="databaseFileInput" accept=".json" style="display: none;">
+                    <button class="btn btn-light" id="manageFiltersBtn">
+                        <i class="fas fa-filter"></i> Administrar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Mobile Header -->
+        <div class="mobile-header" style="display: none;">
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1 class="header-title">
+                <i class="fas fa-briefcase"></i>
+                Gestión de Clientes
+            </h1>
+        </div>
+
+        <!-- Desktop Header -->
+        <header>
+            <h1 class="header-title">
+                <i class="fas fa-briefcase"></i>
+                Sistema de Gestión de Clientes
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" id="addClientBtn">
+                    <i class="fas fa-plus"></i> Agregar Cliente
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav-tabs">
+            <li class="nav-tab active" data-tab="clients">
+                <i class="fas fa-users"></i> Clientes
+            </li>
+            <li class="nav-tab" data-tab="calendar">
+                <i class="fas fa-calendar-alt"></i> Calendario
+            </li>
+            <li class="nav-tab" data-tab="reports">
+                <i class="fas fa-chart-bar"></i> Reportes
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content active" id="clients-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Lista de Clientes</h2>
+                </div>
+                <div class="card-body">
+                    <div id="clientsList" class="clients-grid">
+                        <!-- Los clientes se cargarán aquí dinámicamente -->
+                    </div>
+                    <div id="emptyClientsState" class="empty-state" style="display: none;">
+                        <i class="fas fa-users"></i>
+                        <h3 class="empty-state-title">No hay clientes registrados</h3>
+                        <p class="empty-state-text">Agrega tu primer cliente para comenzar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="calendar-tab" class="tab-content">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2 class="calendar-title" id="calendarTitle">Mes Actual</h2>
+                    <div class="calendar-nav">
+                        <button class="btn btn-light" id="todayBtn">
+                            <i class="fas fa-calendar-day"></i> Hoy
+                        </button>
+                        <button class="btn btn-light" id="prevMonthBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <select class="form-control" id="monthSelect" style="width: auto; display: inline-block;">
+                            <option value="0">Enero</option>
+                            <option value="1">Febrero</option>
+                            <option value="2">Marzo</option>
+                            <option value="3">Abril</option>
+                            <option value="4">Mayo</option>
+                            <option value="5">Junio</option>
+                            <option value="6">Julio</option>
+                            <option value="7">Agosto</option>
+                            <option value="8">Septiembre</option>
+                            <option value="9">Octubre</option>
+                            <option value="10">Noviembre</option>
+                            <option value="11">Diciembre</option>
+                        </select>
+                        <select class="form-control" id="yearSelect" style="width: auto; display: inline-block;">
+                            <!-- Las opciones de año se generarán dinámicamente -->
+                        </select>
+                        <button class="btn btn-light" id="nextMonthBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <button class="btn btn-primary" id="addEventBtn">
+                            <i class="fas fa-plus"></i> Agregar Evento
+                        </button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- El calendario se generará dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <div id="reports-tab" class="tab-content">
+            <div class="reports-container">
+                <div class="report-card">
+                    <div class="card-header">
+                        <h3 class="report-title">Clientes por Estado</h3>
+                        <div class="header-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-light dropdown-toggle" type="button" id="exportClientStatusDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="exportClientStatusDropdown">
+                                    <a class="dropdown-item" href="#" onclick="exportReport('clientsByStatus', 'pdf')">PDF</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('clientsByStatus', 'html')">HTML</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('clientsByStatus', 'image')">Imagen</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="clientsByStatusChart"></canvas>
+                    </div>
+                    <div class="report-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalClientsStat">0</div>
+                            <div class="stat-label">Total Clientes</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="activeClientsStat">0</div>
+                            <div class="stat-label">Activos</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-card">
+                    <div class="card-header">
+                        <h3 class="report-title">Trabajos por Material</h3>
+                        <div class="header-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-light dropdown-toggle" type="button" id="exportJobsByMaterialDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="exportJobsByMaterialDropdown">
+                                    <a class="dropdown-item" href="#" onclick="exportReport('jobsByMaterial', 'pdf')">PDF</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('jobsByMaterial', 'html')">HTML</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('jobsByMaterial', 'image')">Imagen</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="jobsByMaterialChart"></canvas>
+                    </div>
+                    <div class="report-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalJobsStat">0</div>
+                            <div class="stat-label">Total Trabajos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="completedJobsStat">0</div>
+                            <div class="stat-label">Completados</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-card">
+                    <div class="card-header">
+                        <h3 class="report-title">Ingresos Mensuales</h3>
+                        <div class="header-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-light dropdown-toggle" type="button" id="exportMonthlyIncomeDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="exportMonthlyIncomeDropdown">
+                                    <a class="dropdown-item" href="#" onclick="exportReport('monthlyIncome', 'pdf')">PDF</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('monthlyIncome', 'html')">HTML</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('monthlyIncome', 'image')">Imagen</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="monthlyIncomeChart"></canvas>
+                    </div>
+                    <div class="report-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalIncomeStat">₡0</div>
+                            <div class="stat-label">Ingreso Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="avgIncomeStat">₡0</div>
+                            <div class="stat-label">Promedio Mensual</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="report-card">
+                    <div class="card-header">
+                        <h3 class="report-title">Ganancias</h3>
+                        <div class="header-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-light dropdown-toggle" type="button" id="exportProfitsDropdown" data-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-download"></i> Exportar
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="exportProfitsDropdown">
+                                    <a class="dropdown-item" href="#" onclick="exportReport('profits', 'pdf')">PDF</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('profits', 'html')">HTML</a>
+                                    <a class="dropdown-item" href="#" onclick="exportReport('profits', 'image')">Imagen</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="profitsChart"></canvas>
+                    </div>
+                    <div class="report-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalProfitStat">₡0</div>
+                            <div class="stat-label">Ganancia Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="profitMarginStat">0%</div>
+                            <div class="stat-label">Margen Promedio</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Cliente -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="clientModalTitle">Agregar Cliente</h3>
+                <button class="modal-close" id="closeClientModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="client-details-container">
+                    <div class="client-details-left">
+                        <div class="client-avatar-section">
+                            <img id="clientAvatarPreview" src="https://picsum.photos/seed/avatar/150/150.jpg" alt="Avatar del cliente" class="client-avatar-large">
+                            <input type="file" id="clientAvatarInput" accept="image/*" style="display: none;">
+                            <button class="btn btn-light" id="changeAvatarBtn">
+                                <i class="fas fa-camera"></i> Cambiar Foto
+                            </button>
+                        </div>
+                        
+                        <div class="client-info-section">
+                            <h4>Información del Cliente</h4>
+                            <div class="info-row">
+                                <span class="info-label">Nombre:</span>
+                                <span class="info-value" id="displayName">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Teléfono:</span>
+                                <span class="info-value" id="displayPhone">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Correo:</span>
+                                <span class="info-value" id="displayEmail">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Dirección:</span>
+                                <span class="info-value" id="displayAddress">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Empresa:</span>
+                                <span class="info-value" id="displayCompany">-</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Estado:</span>
+                                <span class="info-value" id="displayStatus">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="client-details-right">
+                        <div class="form-group">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="clientNameInput">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="clientPhoneInput">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="clientEmailInput">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="clientAddressInput">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Empresa</label>
+                            <input type="text" class="form-control" id="clientCompanyInput" list="companiesList">
+                            <datalist id="companiesList"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Estado</label>
+                            <select class="form-control" id="clientStatusInput">
+                                <option value="seguimiento">Seguimiento</option>
+                                <option value="cerrado">Cerrado</option>
+                                <option value="pendiente">Pendiente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="authorized-persons">
+                    <div class="card-header">
+                        <h4>Personas Autorizadas</h4>
+                        <button class="btn btn-primary btn-sm" id="addAuthorizedPersonBtn">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                    <div id="authorizedPersonsList">
+                        <!-- Las personas autorizadas se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="jobs-section">
+                    <div class="jobs-header">
+                        <h4>Trabajos del Cliente</h4>
+                        <button class="btn btn-primary btn-sm" id="addJobBtn">
+                            <i class="fas fa-plus"></i> Agregar Trabajo
+                        </button>
+                    </div>
+                    <div id="jobsList" class="jobs-list">
+                        <!-- Los trabajos se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteClientBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+                <button class="btn btn-light" id="cancelClientBtn">Cancelar</button>
+                <button class="btn btn-primary" id="saveClientBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Trabajo -->
+    <div id="jobModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="jobModalTitle">Agregar Trabajo</h3>
+                <button class="modal-close" id="closeJobModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Producto/Trabajo</label>
+                    <input type="text" class="form-control" id="jobNameInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Material</label>
+                    <select class="form-control" id="jobMaterialInput">
+                        <option value="">Seleccionar material</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medidas</label>
+                    <input type="text" class="form-control" id="jobMeasuresInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select class="form-control" id="jobStatusInput">
+                        <option value="seguimiento">Seguimiento</option>
+                        <option value="cerrado">Cerrado</option>
+                        <option value="pendiente">Pendiente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Detalles</label>
+                    <div class="rich-editor">
+                        <div class="editor-toolbar">
+                            <button class="editor-btn" data-command="bold"><i class="fas fa-bold"></i></button>
+                            <button class="editor-btn" data-command="italic"><i class="fas fa-italic"></i></button>
+                            <button class="editor-btn" data-command="underline"><i class="fas fa-underline"></i></button>
+                            <button class="editor-btn" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                            <button class="editor-btn" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                            <button class="editor-btn" data-command="justifyLeft"><i class="fas fa-align-left"></i></button>
+                            <button class="editor-btn" data-command="justifyCenter"><i class="fas fa-align-center"></i></button>
+                            <button class="editor-btn" data-command="justifyRight"><i class="fas fa-align-right"></i></button>
+                        </div>
+                        <div class="editor-content" id="jobDetailsInput" contenteditable="true"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notas de Seguimiento</label>
+                    <div class="rich-editor">
+                        <div class="editor-toolbar">
+                            <button class="editor-btn" data-command="bold"><i class="fas fa-bold"></i></button>
+                            <button class="editor-btn" data-command="italic"><i class="fas fa-italic"></i></button>
+                            <button class="editor-btn" data-command="underline"><i class="fas fa-underline"></i></button>
+                            <button class="editor-btn" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                            <button class="editor-btn" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                            <button class="editor-btn" data-command="justifyLeft"><i class="fas fa-align-left"></i></button>
+                            <button class="editor-btn" data-command="justifyCenter"><i class="fas fa-align-center"></i></button>
+                            <button class="editor-btn" data-command="justifyRight"><i class="fas fa-align-right"></i></button>
+                        </div>
+                        <div class="editor-content" id="jobFollowUpNotesInput" contenteditable="true"></div>
+                    </div>
+                </div>
+                
+                <div class="files-section">
+                    <div class="card-header">
+                        <h4>Archivos</h4>
+                        <button class="btn btn-primary btn-sm" id="addFileBtn">
+                            <i class="fas fa-plus"></i> Agregar Archivo
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx" multiple style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Agregar Archivo por URL</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" class="form-control" id="fileUrlInput" placeholder="https://ejemplo.com/archivo.jpg">
+                            <select class="form-control" id="fileTypeSelect" style="width: auto;">
+                                <option value="image">Imagen</option>
+                                <option value="video">Video</option>
+                                <option value="pdf">PDF</option>
+                                <option value="document">Documento</option>
+                            </select>
+                            <button class="btn btn-primary" id="addFileByUrlBtn">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="filesList" class="files-grid">
+                        <!-- Los archivos se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="cancelJobBtn">Cancelar</button>
+                <button class="btn btn-primary" id="saveJobBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalles del Trabajo -->
+    <div id="jobDetailsModal" class="modal">
+        <div class="modal-content job-details-modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="jobDetailsModalTitle">Detalles del Trabajo</h3>
+                <button class="modal-close" id="closeJobDetailsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="job-details-content">
+                    <div class="job-info-section">
+                        <h4>Información del Trabajo</h4>
+                        <div class="info-row">
+                            <span class="info-label">Nombre:</span>
+                            <span class="info-value" id="jobDetailsName">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Material:</span>
+                            <span class="info-value" id="jobDetailsMaterial">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Medidas:</span>
+                            <span class="info-value" id="jobDetailsMeasures">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Estado:</span>
+                            <span class="info-value" id="jobDetailsStatus">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Detalles:</span>
+                        </div>
+                        <div id="jobDetailsDetails" style="padding: 10px; background-color: #f8f9fa; border-radius: 5px; margin-bottom: 10px;"></div>
+                        <div class="info-row">
+                            <span class="info-label">Notas:</span>
+                        </div>
+                        <div id="jobDetailsNotes" style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;"></div>
+                    </div>
+                    
+                    <div class="job-calculator-section">
+                        <h4>Calculadora de Costos</h4>
+                        <div class="calculator-section">
+                            <div class="calculator-row">
+                                <span class="calculator-label">Costo Total:</span>
+                                <span class="calculator-result result-costo" id="jobDetailsCost">₡0</span>
+                            </div>
+                            <div class="calculator-row">
+                                <span class="calculator-label">Precio Sin IVA:</span>
+                                <span class="calculator-result result-precio-sin-iva" id="jobDetailsPriceWithoutIva">₡0</span>
+                            </div>
+                            <div class="calculator-row">
+                                <span class="calculator-label">Precio Final:</span>
+                                <span class="calculator-result result-precio-final" id="jobDetailsFinalPrice">₡0</span>
+                            </div>
+                            <div class="calculator-row">
+                                <span class="calculator-label">Ganancia:</span>
+                                <span class="calculator-result" id="jobDetailsProfit">₡0 (0%)</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-info" id="openCalculatorBtn" style="width: 100%; margin-top: 10px;">
+                            <i class="fas fa-calculator"></i> Abrir Calculadora
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="job-files-section">
+                    <h4>Archivos Adjuntos</h4>
+                    <div id="jobDetailsFiles" class="files-grid">
+                        <!-- Los archivos se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteJobBtn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+                <button class="btn btn-warning" id="editJobBtn">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn btn-light" id="closeJobDetailsBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Calculadora -->
+    <div id="calculatorModal" class="modal">
+        <div class="modal-content calculator-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Calculadora de Costos y Precios</h3>
+                <button class="modal-close" id="closeCalculatorModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="calculator-section">
+                    <h4 class="calculator-title">Componentes Fijos</h4>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Publicidad:</label>
+                        <input type="number" class="calculator-input" id="publicityInput" value="400">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Servicios Luz/Agua:</label>
+                        <input type="number" class="calculator-input" id="servicesInput" value="200">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Transporte:</label>
+                        <input type="number" class="calculator-input" id="transportInput" value="1000">
+                    </div>
+                </div>
+                
+                <div class="calculator-section">
+                    <h4 class="calculator-title">Componentes Variables</h4>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Costo Proveedor:</label>
+                        <input type="number" class="calculator-input" id="providerCostInput" value="0">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Costo de Empaque:</label>
+                        <input type="number" class="calculator-input" id="packagingCostInput" value="0">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Diseño:</label>
+                        <input type="number" class="calculator-input" id="designCostInput" value="0">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Instalación:</label>
+                        <input type="number" class="calculator-input" id="installationCostInput" value="0">
+                    </div>
+                </div>
+                
+                <div class="calculator-section">
+                    <h4 class="calculator-title">Cálculos</h4>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Costo Total:</label>
+                        <div class="calculator-result result-costo" id="totalCostResult">₡0</div>
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Margen de Ganancia:</label>
+                        <select class="calculator-input" id="profitMarginSelect" style="width: auto;">
+                            <option value="5">5%</option>
+                            <option value="10">10%</option>
+                            <option value="15">15%</option>
+                            <option value="20" selected>20%</option>
+                            <option value="25">25%</option>
+                            <option value="30">30%</option>
+                            <option value="40">40%</option>
+                            <option value="50">50%</option>
+                            <option value="75">75%</option>
+                            <option value="100">100%</option>
+                        </select>
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Precio Sin IVA:</label>
+                        <input type="number" class="calculator-input" id="priceWithoutIvaInput" value="0">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">IVA:</label>
+                        <select class="calculator-input" id="ivaSelect" style="width: auto;">
+                            <option value="13" selected>13%</option>
+                        </select>
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Precio Final:</label>
+                        <input type="number" class="calculator-input" id="finalPriceInput" value="0">
+                    </div>
+                    <div class="calculator-row">
+                        <label class="calculator-label">Ganancia Obtenida:</label>
+                        <div class="calculator-result" id="profitResult">₡0 (0%)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="cancelCalculatorBtn">Cancelar</button>
+                <button class="btn btn-primary" id="saveCalculatorBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Persona Autorizada -->
+    <div id="authorizedPersonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Agregar Persona Autorizada</h3>
+                <button class="modal-close" id="closeAuthorizedPersonModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="authorizedPersonNameInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" id="authorizedPersonPhoneInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cédula</label>
+                    <input type="text" class="form-control" id="authorizedPersonIdInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nota</label>
+                    <div class="rich-editor">
+                        <div class="editor-toolbar">
+                            <button class="editor-btn" data-command="bold"><i class="fas fa-bold"></i></button>
+                            <button class="editor-btn" data-command="italic"><i class="fas fa-italic"></i></button>
+                            <button class="editor-btn" data-command="underline"><i class="fas fa-underline"></i></button>
+                            <button class="editor-btn" data-command="insertUnorderedList"><i class="fas fa-list-ul"></i></button>
+                            <button class="editor-btn" data-command="insertOrderedList"><i class="fas fa-list-ol"></i></button>
+                            <button class="editor-btn" data-command="justifyLeft"><i class="fas fa-align-left"></i></button>
+                            <button class="editor-btn" data-command="justifyCenter"><i class="fas fa-align-center"></i></button>
+                            <button class="editor-btn" data-command="justifyRight"><i class="fas fa-align-right"></i></button>
+                        </div>
+                        <div class="editor-content" id="authorizedPersonNoteInput" contenteditable="true"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="cancelAuthorizedPersonBtn">Cancelar</button>
+                <button class="btn btn-primary" id="saveAuthorizedPersonBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Evento -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="eventModalTitle">Agregar Evento</h3>
+                <button class="modal-close" id="closeEventModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Título</label>
+                    <input type="text" class="form-control" id="eventTitleInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-control" id="eventDescriptionInput" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fecha</label>
+                    <input type="date" class="form-control" id="eventDateInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Hora</label>
+                    <input type="time" class="form-control" id="eventTimeInput">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cliente</label>
+                    <select class="form-control" id="eventClientInput">
+                        <option value="">Seleccionar cliente</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="deleteEventBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+                <button class="btn btn-light" id="cancelEventBtn">Cancelar</button>
+                <button class="btn btn-primary" id="saveEventBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Filtros -->
+    <div id="filterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Administrar Filtros</h3>
+                <button class="modal-close" id="closeFilterModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Materiales</h4>
+                        <button class="btn btn-primary btn-sm" id="addMaterialBtn">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                    <div id="materialsList" class="filters-list">
+                        <!-- Los materiales se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Estados</h4>
+                        <button class="btn btn-primary btn-sm" id="addStatusBtn">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                    <div id="statusList" class="filters-list">
+                        <!-- Los estados se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Empresas</h4>
+                        <button class="btn btn-primary btn-sm" id="addCompanyBtn">
+                            <i class="fas fa-plus"></i> Agregar
+                        </button>
+                    </div>
+                    <div id="companiesList" class="filters-list">
+                        <!-- Las empresas se cargarán aquí dinámicamente -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-light" id="cancelFilterBtn">Cancelar</button>
+                <button class="btn btn-primary" id="saveFilterBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmación -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="confirm-dialog">
+                <h3 id="confirmTitle">Confirmar Acción</h3>
+                <p id="confirmMessage">¿Está seguro de realizar esta acción?</p>
+                <div class="dialog-actions">
+                    <button class="btn btn-light" id="confirmCancel">Cancelar</button>
+                    <button class="btn btn-danger" id="confirmOk">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <button class="lightbox-close" id="lightboxClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="lightbox-nav lightbox-next" id="lightboxNext">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Controles de zoom -->
+        <div class="lightbox-controls">
+            <button class="lightbox-zoom-btn" id="lightboxZoomIn">
+                <i class="fas fa-search-plus"></i>
+            </button>
+            <button class="lightbox-zoom-btn" id="lightboxZoomOut">
+                <i class="fas fa-search-minus"></i>
+            </button>
+            <button class="lightbox-zoom-btn" id="lightboxZoomReset">
+                <i class="fas fa-compress"></i>
+            </button>
+        </div>
+        
+        <div class="lightbox-content" id="lightboxContent">
+            <!-- El contenido del lightbox se cargará dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Operación exitosa</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js-01.js"></script>
+    <script src="js-02.js"></script>
+    <script src="js-03.js"></script>
+    <script src="js-04.js"></script>
+    <script src="js-05.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
